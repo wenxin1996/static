@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
     <link href="css/common.css" rel="stylesheet">
     <script src="js/common.js"></script>
@@ -98,8 +99,8 @@
                 clockProjects = [];
             }
             for (let project of projects) {
-                if(project == ""){
-
+                if(project == "记录3件时"){
+                    $("#projects").append(projectHtml.replace("${project}", project.project_name));
                 }else if (clockProjects.includes(project.project_name)) {
                     $("#projects").append(projectDeleteHtml.replace("${project}", project.project_name));
                 } else {
