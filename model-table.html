@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+  <link href="css/common.css" rel="stylesheet">
+  <script src="js/common.js"></script>
+  <title>model-table</title>
+</head>
+
+<body>
+  <section class="container">
+    <ul class="nav justify-content-center">
+      <li class="nav-item">
+        <a class="nav-link" active href="#">model</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">about</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="clearCache()">clear-cache</a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="model-project.html">project</a></li>
+        <li class="breadcrumb-item active" aria-current="page">table</li>
+      </ol>
+    </nav>
+  </section>
+
+  <section id="main" class="container">
+    <table class="table">
+      <caption id="project-name">project : ${project}</caption>
+      <thead>
+        <tr>
+          <th scope="col">名称</th>
+          <th scope="col">类型</th>
+          <th scope="col">建表语句</th>
+        </tr>
+      </thead>
+      <tbody id="table-info">
+        <tr onclick="toField(this)">
+          <td>${name}</td>
+          <td>${type}</td>
+          <td>${sql}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    let teHtml = "<tr onclick=\"toField(this)\"><td>${name}</td><td>${type}</td><td>${sql}</td></tr>";
+    let pName;
+
+    window.onload = function () {
+      pName = getUrlParam('pName');
+      let html = "";
+      let url = "http://148.70.73.59:8002/get/table?pName=" + pName;
+      $.get(url, function (jsonArray) {
+        for (let i in jsonArray) {
+          let json = jsonArray[i];
+          let name = json.name;
+          let type = json.type;
+          let sql = json.sql;
+          let temp = teHtml.replace("${name}", name);
+          temp = temp.replace("${type}", type);
+          temp = temp.replace("${sql}", sql);
+          html += temp;
+        }
+        $("#table-info").html(html);
+        $("#project-name").text("project : " + pName);
+      })
+    }
+
+    function toField(table) {
+      let td = $(table).children("td").get(0);
+      let tName = $(td).text();
+      window.location = "model-field.html?pName=" + pName + "&tName=" + tName;
+    }
+
+  </script>
+
+</body>
+
+</html>

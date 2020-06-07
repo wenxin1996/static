@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+  <link href="css/common.css" rel="stylesheet">
+  <script src="js/common.js"></script>
+  <title>model-field</title>
+</head>
+
+<body>
+  <section class="container">
+    <ul class="nav justify-content-center">
+      <li class="nav-item">
+        <a class="nav-link" active href="#">model</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">about</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="clearCache()">clear-cache</a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="model-project.html">project</a></li>
+        <li class="breadcrumb-item"><a id="table-link" href="model-table.html">table</a></li>
+        <li class="breadcrumb-item active" aria-current="page">field</li>
+      </ol>
+    </nav>
+  </section>
+
+  <section id="main" class="container">
+    <table class="table">
+      <caption id="table-name">table : ${table}</caption>
+      <thead>
+        <tr>
+          <th scope="col">名称</th>
+          <th scope="col">类型</th>
+          <th scope="col">注解</th>
+          <th scope="col">枚举</th>
+          <th scope="col">来源描述</th>
+        </tr>
+      </thead>
+      <tbody id="field-info">
+        <tr>
+          <td>${name}</td>
+          <td>${type}</td>
+          <td>${comment}</td>
+          <td>${enum}</td>
+          <td>${desc}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    let teHtml = "<tr><td>${name}</td><td>${type}</td><td>${comment}</td><td>${enum}</td><td>${desc}</td></tr>";
+    let pName, tName;
+    window.onload = function () {
+      pName = getUrlParam('pName');
+      tName = getUrlParam('tName');
+      let html = "";
+      let url = "http://148.70.73.59:8002/get/field?pName=" + pName + "&tName=" + tName;
+      $.get(url, function (jsonArray) {
+        for (let i in jsonArray) {
+          let json = jsonArray[i];
+          let name = json.name;
+          let type = json.type;
+          let comment = json.comment;
+          let enumStr = json.enum;
+          let desc = json.desc;
+          if (enumStr == "null") {
+            enumStr = "无枚举";
+          }
+          let temp = teHtml.replace("${name}", name);
+          temp = temp.replace("${type}", type);
+          temp = temp.replace("${comment}", comment);
+          temp = temp.replace("${enum}", enumStr);
+          temp = temp.replace("${desc}", desc);
+          html += temp;
+        }
+        $("#field-info").html(html);
+        $("#table-name").text("table : " + tName);
+        $("#table-link").attr("href", "model-table.html?pName=" + pName);
+      })
+    }
+  </script>
+
+</body>
+
+</html>

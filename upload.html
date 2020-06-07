@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <title>upload</title>
+</head>
+
+<body>
+    <section class="container">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link" href="img.html">img</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="collection.html">collection</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" active>upload</a>
+            </li>
+        </ul>
+        <div class="row" stype="margin-top:30px">
+            <div class="col-12">
+                <hr>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="row">
+            <div class="col-12 text-center">
+                <a class="btn btn-outline-info" data-toggle="collapse" href="#img-section" role="button"
+                    aria-expanded="false" aria-controls="img-section">
+                    img
+                </a>
+                <button class="btn btn-outline-dark" type="button" data-toggle="collapse"
+                    data-target="#collection-section" aria-expanded="false" aria-controls="collection-section">
+                    collection
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="img-section" class="container collapse" style="margin-top: 30px">
+        <div class="row">
+            <div class="col-12 col-md-6 offset-md-3 input-group flex-nowrap">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">scale</span>
+                </div>
+                <input id="scale" type="text" class="form-control" placeholder="scale" value="0.8">
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <div class="col-12 col-md-6 offset-md-3 input-group flex-nowrap">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">md5</span>
+                </div>
+                <input id="md5" type="text" class="form-control" placeholder="md5">
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <div class="col-12 col-md-6 offset-md-3 input-group flex-nowrap">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">name</span>
+                </div>
+                <input id="name" type="text" class="form-control" placeholder="name">
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <div class="col-12 col-md-6 offset-md-3 input-group mb-3">
+                <div class="custom-file">
+                    <input id="file" type="file" class="custom-file-input" />
+                    <label id="file-label" class="custom-file-label" for="file">Choose file</label>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <div class="col-12 col-md-6 offset-md-3">
+                <button id="upload-img" type="button" class="btn btn-info btn-lg btn-block">upload</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="collection-section" class="container collapse" style="margin-top: 30px">
+        <div class="row" style="margin-top: 10px">
+            <div class="col-12 col-md-3 input-group flex-nowrap">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">type</span>
+                </div>
+                <input id="type" type="text" class="form-control" placeholder="type">
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <div class="col-12 input-group flex-nowrap">
+                <textarea id="desc" type="text" class="form-control" placeholder="desc"></textarea>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <div class="col-12">
+                <button id="upload-collection" type="button" class="btn btn-info btn-lg btn-block">upload</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        $("#upload-img").click(function () {
+            let scale = $("#scale").val();
+            let name = $("#name").val()
+            let md5 = $("#md5").val();
+            let info = {
+                name: name,
+                scale: scale,
+                md5: md5
+            };
+            let formData = new FormData();
+            let file = $("#file")[0].files[0];
+            formData.append("file", file);
+            formData.append("info", JSON.stringify(info));
+            $.post({
+                url: "http://148.70.73.59:8800/upload",
+                type: 'POST',
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (json) {
+                    alert(JSON.stringify(json));
+                },
+                error: function (json) {
+                    alert(JSON.stringify(json));
+                }
+            })
+        })
+
+        $("#upload-collection").click(function () {
+            let type = $("#type").val();
+            let desc = $("#desc").val();
+            let collection = {
+                type:type,
+                desc:desc
+            }
+            let formData = new FormData();
+            formData.append("collection", JSON.stringify(collection));
+            $.post({
+                url: "http://148.70.73.59:8801/save-collection",
+                type: 'POST',
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (json) {
+                    alert(JSON.stringify(json));
+                },
+                error: function (error) {
+                    alert(error.responseText);
+                }
+            })
+        })
+
+        $("#file").change(function () {
+            let path = $("#file").val();
+            let nameIndex = path.lastIndexOf("\\") + 1;
+            let name = path.substr(nameIndex, path.length);
+            $("#file-label").text(path);
+            $("#name").val(name);
+        })
+    </script>
+</body>
+
+</html>

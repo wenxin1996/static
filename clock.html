@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+    <link href="css/common.css" rel="stylesheet">
+    <script src="js/common.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/4.8.0/echarts.min.js"></script>
+    <title>clock</title>
+</head>
+
+<style>
+    tr {
+        cursor: default;
+    }
+
+    .row {
+        margin-top: 2px;
+    }
+</style>
+
+<body>
+    <section class="container">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link" active href="#">clock</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">about</a>
+            </li>
+        </ul>
+    </section>
+
+    <section id="main" class="jumbotron jumbotron-fluid">
+        <div class="container">
+            <h1 class="display-4" onclick="clock(this)" style="cursor: pointer;">孟子·告子下</h1>
+            <p class="lead">故天将降大任于是人也，必先苦其心志，劳其筋骨，饿其体肤，空乏其身，行拂乱其所为，所以动心忍性，曾益其所不能。</p>
+            <div id="projects">
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div id="calendar" style="width: 100%;height:400px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <script>
+        let projectHtml = "<p><strong onclick=\"clock(this)\"style=\"cursor: pointer;\">${project}</strong></p>";
+        let projectDeleteHtml = "<p><del class=\"text-muted\">${project}</del></p>";
+        let projects = [];
+        let clocks = [];
+        let clockMap = new Map();
+        $(function () {
+            let getProjectsUrl = "http://148.70.73.59:8005/get/projects";
+            let getClocksUrl = "http://148.70.73.59:8005/get/clocks";
+            $.ajax({
+                type: "get",
+                url: getProjectsUrl,
+                async: false,
+                success: function (result) {
+                    projects = result;
+                }
+            });
+            $.ajax({
+                type: "get",
+                url: getClocksUrl,
+                async: false,
+                success: function (result) {
+                    clocks = result;
+                }
+            });
+            load();
+            showCalendar();
+        })
+
+        function load() {
+            for (let clock of clocks) {
+                let date = clock.clock_time;
+                let clockProjects = clockMap.get(date);
+                if (clockProjects == null) {
+                    clockProjects = [clock.project_name];
+                    clockMap.set(date, clockProjects);
+                } else {
+                    clockProjects.push(clock.project_name);
+                }
+            }
+            var now = new Date().Format("yyyy-MM-dd");
+            let clockProjects = clockMap.get(now);
+            if (clockProjects == null) {
+                clockProjects = [];
+            }
+            for (let project of projects) {
+                if(project == ""){
+
+                }else if (clockProjects.includes(project.project_name)) {
+                    $("#projects").append(projectDeleteHtml.replace("${project}", project.project_name));
+                } else {
+                    $("#projects").append(projectHtml.replace("${project}", project.project_name));
+                }
+            }
+        }
+
+        function clock(project) {
+            var now = new Date().Format("yyyy-MM-dd HH:mm:ss");
+            let url = "http://148.70.73.59:8005/save/clock";
+            let name = $(project).text();
+            let content = "clock in at " + now;
+            $.get(url, { name: name, content: content }, function (result) {
+                if (result.code == 1) {
+                    swal("成功", "打卡完成", "success");
+                    let p = $(project).parent();
+                    $(p).html(projectDeleteHtml.replace("${project}", name));
+                } else {
+                    swal("失败", result, "error");
+                }
+            })
+        }
+
+        function getVirtulData() {
+            let data = [];
+            clockMap.forEach(function (value, key) {
+                data.push([key, value.length * 1500]);
+            });
+            return data;
+        }
+
+        function showCalendar() {
+            let data = getVirtulData();
+            option = {
+                backgroundColor: '#fff',
+                title: {
+                    top: 30,
+                    text: '2020年签卡',
+                    subtext: '数量',
+                    left: 'center',
+                    textStyle: {
+                        color: '#323c48'
+                    }
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    top: '30',
+                    left: '100',
+                    data: ['签卡数', 'Top 12'],
+                    textStyle: {
+                        color: '#323c48'
+                    }
+                },
+                calendar: [{
+                    top: 100,
+                    left: 'center',
+                    range: ['2020-06-04', '2020-12-31'],
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: '#000',
+                            width: 4,
+                            type: 'solid'
+                        }
+                    },
+                    yearLabel: {
+                        formatter: '{start}  1st',
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    itemStyle: {
+                        color: '#323c48',
+                        borderWidth: 1,
+                        borderColor: '#111'
+                    }
+                }],
+                series: [
+                    {
+                        name: '签卡数',
+                        type: 'scatter',
+                        coordinateSystem: 'calendar',
+                        data: data,
+                        symbolSize: function (val) {
+                            return val[1] / 500;
+                        },
+                        itemStyle: {
+                            color: '#ddb926'
+                        }
+                    },
+                    {
+                        name: 'Top 12',
+                        type: 'effectScatter',
+                        coordinateSystem: 'calendar',
+                        data: data.sort(function (a, b) {
+                            return b[1] - a[1];
+                        }).slice(0, 12),
+                        symbolSize: function (val) {
+                            return val[1] / 500;
+                        },
+                        showEffectOn: 'render',
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        hoverAnimation: true,
+                        itemStyle: {
+                            color: '#f4e925',
+                            shadowBlur: 10,
+                            shadowColor: '#333'
+                        },
+                        zlevel: 1
+                    }
+                ]
+            };
+            var myChart = echarts.init(document.getElementById('calendar'));
+            myChart.setOption(option);
+        }
+    </script>
+</body>
+
+</html>

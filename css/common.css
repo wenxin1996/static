@@ -1,0 +1,15 @@
+@import "https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css";
+@import "https://cdn.bootcdn.net/ajax/libs/font-awesome/5.13.0/css/all.min.css";
+
+table {
+    table-layout: fixed;
+}
+
+tr {
+    cursor: pointer;
+}
+
+td {
+    white-space: nowrap;
+    overflow: auto!important;
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <title>easywork</title>
+</head>
+
+<style>
+    p {
+        text-indent: 2em;
+    }
+</style>
+
+<body>
+    <section class="container">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link" active href="#">easywork</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">about</a>
+            </li>
+        </ul>
+    </section>
+
+    <section class="container">
+        <div class="accordion" id="accordionExample">
+            <div class="card">
+              <div class="card-header" id="headingOne">
+                <h2 class="mb-0">
+                  <button id="remainder-button" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#remainder" aria-expanded="false" aria-controls="remainder">
+                    remainder
+                  </button>
+                </h2>
+              </div>
+              <div id="remainder" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header" id="headingTwo">
+                <h2 class="mb-0">
+                  <button id="complete-button" class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#complete" aria-expanded="false" aria-controls="complete">
+                    complete
+                  </button>
+                </h2>
+              </div>
+              <div id="complete" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample"></div>
+            </div>
+    </section>
+
+    <script>
+        let remainderHtmlRow = "<div class=\"card-body\"><div class=\"input-group input-group-sm mb-3\"><div class=\"input-group-prepend\"><span class=\"input-group-text\"id=\"inputGroup-sizing-sm\">${name}</span></div><input type=\"text\"class=\"form-control\"aria-label=\"Sizing example input\"aria-describedby=\"inputGroup-sizing-sm\"><div class=\"input-group-append\"><button class=\"btn btn-outline-secondary\"type=\"button\"onclick=\"update(this)\">update</button></div></div></div>";
+        let completeHtmlRow = "<div class=\"card-body\"><div class=\"input-group input-group-sm mb-3\"><div class=\"input-group-prepend\"><span class=\"input-group-text\"id=\"inputGroup-sizing-sm\">${name}</span></div><input type=\"text\"class=\"form-control\"aria-label=\"Sizing example input\"aria-describedby=\"inputGroup-sizing-sm\"value=\"${value}\"><div class=\"input-group-append\"><button class=\"btn btn-outline-secondary\"type=\"button\"onclick=\"update(this)\">update</button></div></div></div>";
+
+        window.onload = function () {
+            let url = "http://148.70.73.59:8001/get";
+            $.get(url, function (jsonArray) {
+                let remainderHtml = "", completeHtml = "";
+                let remainderNum = 0, completeNum = 0;
+                for (let i in jsonArray) {
+                    let json = jsonArray[i];
+                    let name = json.name;
+                    let value = json.value;
+                    if(value == ""){
+                        let row = remainderHtmlRow.replace("${name}", name);
+                        remainderHtml += row;
+                        remainderNum ++;
+                    }else{
+                        let row = completeHtmlRow.replace("${name}", name).replace("${value}", value);
+                        completeHtml += row;
+                        completeNum++;
+                    }
+                } 
+                $("#remainder-button").text("remainder("+remainderNum+")");
+                $("#complete-button").text("remainder("+completeNum+")");
+                $("#remainder").html(remainderHtml);
+                $("#complete").html(completeHtml);
+            })
+        };
+
+        function update(updateBut){
+            let divBut = $(updateBut).parent();
+            let inputValue = $(divBut).prev();
+            let divSpan = $(inputValue).prev();
+            let span = $(divSpan).children("span").get(0);
+            let name = $(span).text();
+            let value = $(inputValue).val();
+            let url = "http://148.70.73.59:8001/put?data={\"name\":\"${name}\",\"value\":\"${value}\"}";
+            url = url.replace("${name}", name).replace("${value}", value);
+            $.get(url, function (json) {
+                let result = json.result;
+                $(updateBut).text(result);
+            })
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+	<link href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap-grid.min.css" rel="stylesheet">
+	<link href='http://cdn.webfont.youziku.com/webfonts/nomal/116661/46758/5acf152df629de09681037fb.css' rel='stylesheet' type='text/css' />
+	<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+	<title>fire</title>
+</head>
+<style type="text/css">
+	body{
+		color: #fff;
+		background:#000;
+	}
+	.light-text{
+		font-family:'HelveticaNeue';
+		color: #5199DE;
+		text-shadow:0 0 2px #BBD4DE;
+	}
+	.circle {
+	    width: 100px;
+	    height: 200px;
+	    background-color: #a72525;
+	    -webkit-border-radius: 200px 0 0 200px;
+	}
+	.fire {
+	    background: #FF3D37;
+	    position: absolute;
+	    animation: fireup;
+	    animation-duration:8s;
+	    animation-fill-mode:forwards;
+	    top:0;
+	}
+	@keyframes fireup
+	{
+		0%{top: 0;opacity: 0.1}
+		50%{background:#FF443D;transform: rotate(450deg);top: -60px;opacity: 1;}
+		100% {background:#FFB918; transform: rotate(630deg);top: -240px;opacity: 0}
+	}
+</style>
+<body>
+	<div class="container">
+		<div class="row" style="margin-top: 300px">
+			<div class="col-4 offset-4" style="text-align: center">
+				<div class="firebottom"></div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-12" style="text-align: center">
+				<h2 id="countTime" class="light-text"></h2>
+				<h1 id="text" style="font-family:'HelveticaNeue';color:#fff;text-shadow: 0 0 2px #FCDCDD"></h1>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		var endDate = new Date(2021, 1, 1);//月份从0开始算
+		window.onload=function(){
+			setInterval(fire,600)
+			setInterval(deadtime,200)
+		}
+		function fire(){
+			var bottom = $('.firebottom')
+			var fire=$('.fire')
+			var length=Math.random()*20+30
+			var left=Math.random()*20+30
+			bottom.prepend("<div class='fire' style='left:"+left+"%;height:"+length+"px;width:"+length+"px;' />")
+			bottom.children('.fire').eq(18).remove()
+		}
+		function deadtime(){
+	        var now = new Date();
+	        var leftTime=endDate.getTime()-now.getTime();
+	        var leftsecond = parseInt(leftTime/1000)+18*3600;
+	        $('#countTime').text(leftsecond+' 秒')
+	        $('#text').text((leftsecond/86400).toFixed(2)+'天')
+		}
+	</script>
+</body>
+</html>

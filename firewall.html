@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+  <link href="css/common.css" rel="stylesheet">
+  <script src="js/common.js"></script>
+  <title>firewall</title>
+</head>
+
+<style>
+  tr {
+    cursor: default;
+  }
+</style>
+
+<body>
+  <section class="container">
+    <ul class="nav justify-content-center">
+      <li class="nav-item">
+        <a class="nav-link" active href="#">firewall</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">about</a>
+      </li>
+    </ul>
+  </section>
+
+  <section id="main" class="container">
+    <table class="table table-hover">
+      <caption id="firewall-key"></caption>
+      <thead>
+        <tr>
+          <th scope="col">target</th>
+          <th scope="col">prot</th>
+          <th scope="col">source</th>
+          <th scope="col">destination</th>
+          <th scope="col">dpts</th>
+          <th scope="col">operate</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr id="te-first">
+          <td><input id="add-target" type="text" class="form-control" value="ACCEPT"></td>
+          <td><input id="add-prot" type="text" class="form-control" value="tcp"></td>
+          <td><input id="add-source" type="text" class="form-control" value="0.0.0.0/0"></td>
+          <td><input id="add-destination" type="text" class="form-control" value="0.0.0.0/0"></td>
+          <td><input id="add-dpts" type="text" class="form-control" value="7001:7099"></td>
+          <td id="add-operate"><i class="fa fa-plus-circle text-success" aria-hidden="true" style="cursor: pointer;"
+              onclick="addRule()"> add</i></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+
+  <script>
+    let key;
+    let tbodyHtml = "<tr><td>${target}</td><td>${prot}</td><td>${source}</td><td>${destination}</td><td>${dpts}</td><td><i class=\"fa fa-trash text-danger\"aria-hidden=\"true\"style=\"cursor: pointer;\"onclick=\"deleteRule(this)\"> delete</i></td></tr>";
+    let commandLs = "iptables -L INPUT -n";
+    let commandAdd = "iptables -I INPUT -p ${prot} -s ${source} -d ${destination} --dport ${dpts} -j ${target}";
+    let commandDelete = "iptables -D INPUT -p ${prot} -s ${source} -d ${destination} --dport ${dpts} -j ${target}";
+
+    $(function () {
+      swal("输入KEY值:", {
+        content: "input",
+      }).then((value) => {
+        key = value;
+        $("#firewall-key").text("key : " + key);
+        load();
+      });
+    })
+
+    function load() {
+      let url = "http://148.70.73.59:8003/shell/execute?command=" + commandLs + "&key=" + key;
+      $.get(url, function (json) {
+        if (json.state != "success") {
+          swal("KEY值错误", json.info, "error");
+        } else {
+          let info = json.info;
+          let lines = info.split("\n");
+          for (let i = 2; i < lines.length; i++) {
+            let line = lines[i];
+            if (line == "") {
+              continue;
+            }
+            let words = splitInfo(line);
+            let target = words[0];
+            let prot = words[1];
+            let source = words[3];
+            let destination = words[4];
+            let dpts = words[6].replace("dpts:", "").replace("dpt:", "");
+            let tempHtml = tbodyHtml.replace("${target}", target);
+            tempHtml = tempHtml.replace("${prot}", prot);
+            tempHtml = tempHtml.replace("${source}", source);
+            tempHtml = tempHtml.replace("${destination}", destination);
+            tempHtml = tempHtml.replace("${dpts}", dpts);
+            $("#table-body").append(tempHtml);
+          }
+        }
+      })
+    }
+
+    function deleteRule(deleteIco) {
+      let operate = $(deleteIco).parent();
+      let tr = $(operate).parent();
+      $(operate).html(" <div class=\"spinner-border\"role=\"status\"></div>");
+      let dpts = $(operate).prev();
+      let destination = $(dpts).prev();
+      let source = $(destination).prev();
+      let prot = $(source).prev();
+      let target = $(prot).prev();
+      let tempCommand = commandDelete.replace("${target}", $(target).text());
+      tempCommand = tempCommand.replace("${prot}", $(prot).text());
+      tempCommand = tempCommand.replace("${source}", $(source).text());
+      tempCommand = tempCommand.replace("${destination}", $(destination).text());
+      tempCommand = tempCommand.replace("${dpts}", $(dpts).text());
+      let url = "http://148.70.73.59:8003/shell/execute?command=" + tempCommand + "&key=" + key;
+      $.get(url, function (json) {
+        if (json.state != "success") {
+          swal("发生错误", json.info, " ");
+        } else {
+          swal("删除！", "规则已经删除", "success");
+          $(tr).remove();
+        }
+      })
+    }
+
+    function addRule() {
+      $("#add-operate").html(" <div class=\"spinner-border\"role=\"status\"></div>");
+      let target = $("#add-target").val();
+      let prot = $("#add-prot").val();
+      let source = $("#add-source").val();
+      let destination = $("#add-destination").val();
+      let dpts = $("#add-dpts").val();
+      let tempCommand = commandAdd.replace("${target}", target);
+      tempCommand = tempCommand.replace("${prot}", prot);
+      tempCommand = tempCommand.replace("${source}", source);
+      tempCommand = tempCommand.replace("${destination}", destination);
+      tempCommand = tempCommand.replace("${dpts}", dpts);
+      let url = "http://148.70.73.59:8003/shell/execute?command=" + tempCommand + "&key=" + key;
+      $.get(url, function (json) {
+        if (json.state != "success") {
+          swal("发生错误", json.info, "error");
+        } else {
+          swal("添加！", "规则已经添加", "success");
+          let tempHtml = tbodyHtml.replace("${target}", target);
+          tempHtml = tempHtml.replace("${prot}", prot);
+          tempHtml = tempHtml.replace("${source}", source);
+          tempHtml = tempHtml.replace("${destination}", destination);
+          tempHtml = tempHtml.replace("${dpts}", dpts);
+          $("#te-first").after(tempHtml);
+        }
+        $("#add-operate").html("<i class=\"fa fa-plus-circle text-success\"aria-hidden=\"true\"style=\"cursor:pointer;\"onclick=\"addRule()\"> add</i>");
+      })
+    }
+
+    function splitInfo(line) {
+      let words = [];
+      let s = "";
+      let index = 0;
+      for (let c of line) {
+        if (c != " ") {
+          s += c;
+        } else if (s != "") {
+          words[index++] = s;
+          s = "";
+        }
+      }
+      if (s != "") {
+        words[index++] = s;
+      }
+      return words;
+    }
+  </script>
+
+</body>
+
+</html>

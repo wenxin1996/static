@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <title>img</title>
+</head>
+
+<body>
+    <section class="container">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link" active href="#">img</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="collection.html">collection</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="upload.html">upload</a>
+            </li>
+        </ul>
+        <div class="row" stype="margin-top:30px">
+            <div class="col-12">
+                <hr>
+            </div>
+        </div>
+    </section>
+
+    <section class="container" style="margin-top: 10px">
+        <div class="row">
+            <div id="box" class="col-sm-12 col-md-6 offset-md-3 input-group flex-nowrap">
+                <div class="card">
+                    <img id="img" class="card-img-top">
+                    <div class="card-body">
+                        <p id="file-name" class="card-text">default</p>
+                        <button id="delete" type="button" class="btn btn-danger btn-lg btn-block">DELETE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container" style="margin-top: 10px">
+        <div class="row">
+            <nav class="col-12" aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a id="previous" class="page-link" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><input id="page" class="page-link" href="#" value="1"></li>
+                    <li class="page-item">
+                        <a id="next" class="page-link" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </section>
+    <script>
+        let page = 1;
+        let jsonInfo;
+        let jsonLength = 0;
+        window.onload = function () {
+            $.get("http://148.70.73.59:8800/list", function (json) {
+                jsonInfo = json;
+                for (let ever in json) {
+                    jsonLength++;
+                }
+                $("#img").attr("src", "http://148.70.73.59:8800/resources?name=" + jsonInfo[0]);
+                $("#file-name").text(jsonInfo[0]);
+            })
+        };
+
+        $(document).keyup(function (event) {
+            if (event.keyCode == 13) {
+                page = $("#page").val();
+                changePage();
+            }
+        });
+
+        function changePage() {
+            $("#img").attr("src", "http://148.70.73.59:8800/resources?name=" + jsonInfo[page - 1]);
+            $("#file-name").text(jsonInfo[page - 1]);
+        }
+
+        $("#previous").click(function () {
+            if (page <= 1) {
+                alert("can not do that");
+                return;
+            }
+            $("#page").val(--page);
+            changePage();
+        });
+        $("#next").click(function () {
+            if (page >= jsonLength) {
+                alert("can not do that");
+                return;
+            }
+            var pageTemp = $("#page").val();
+            if (pageTemp == page) {
+                $("#page").val(++page);
+            } else {
+                page = pageTemp;
+            }
+            changePage();
+        });
+
+        $("#delete").click(function () {
+            $.get("http://148.70.73.59:8800/remove?name=" + jsonInfo[page - 1], function (json) {
+                alert(JSON.stringify(json));
+            })
+        })
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <title>collection</title>
+</head>
+
+<style>
+    p {
+        text-indent: 2em;
+    }
+</style>
+
+<body>
+    <section class="container">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link" href="img.html">img</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" active href="#">collection</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="upload.html">upload</a>
+            </li>
+        </ul>
+    </section>
+
+
+    <section class="container" style="margin-top: 50px" id="content">
+        <div class="row">
+            <div class="col-12">
+                <h5 class="col-center">
+                    <span class="badge badge-info">编号</span>
+                    &nbsp;#{id}
+                    <span class="badge-pill">
+                        <button type="button" class="btn btn-outline-danger"
+                            onclick="deleteCollection(this)">delete</button>
+                        <button type="button" class="btn btn-outline-info" onclick="editCollection(this)">edit</button>
+                    </span>
+                </h5>
+            </div>
+            <div class="col-12">
+                #{desc}
+            </div>
+            <div class="col-12 text-right">
+                <cite title="Source Title">#{type}</cite>
+                <footer class="blockquote-footer">
+                    #{date}
+                </footer>
+                <hr />
+            </div>
+        </div>
+    </section>
+
+    <section class="container" style="margin-top: 10px">
+        <div class="row">
+            <nav class="col-12" aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a id="previous" class="page-link" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <input id="page" class="page-link" href="#" value="1"></li>
+                    <li class="page-item">
+                        <a id="next" class="page-link" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link">
+                            <small id="allPage">(共1页)</small>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </section>
+
+    <script>
+        let page = 1;
+        let size = 10;
+        let allPage = 1;
+
+        let htmlHeadTemplate = "<div class=\"col-12\"><h5 class=\"col-center\"><span class=\"badge badge-info\">编号</span>&nbsp;#{id}<span class=\"badge-pill\"><button type=\"button\" class=\"btn btn-outline-danger\" onclick=\"deleteCollection(this)\">delete</button><button type=\"button\" class=\"btn btn-outline-info\" onclick=\"editCollection(this)\" style=\"margin-left:5px\">edit</button></span></h5></div>";
+        let htmlDescTemplate = "<div id=\"#{id}\" class=\"col-12\">#{desc}</div>";
+        let htmlFooterTemplate = "<div class=\"col-12 text-right\"><cite title=\"Source Title\">#{type}</cite><footer class=\"blockquote-footer\">#{date}</footer><hr/></div>";
+
+        window.onload = function () {
+            let url = "http://148.70.73.59:8801/get-collections-number";
+            $.get(url, function (json) {
+                collectionNumber = json.number;
+                allPage = parseInt(collectionNumber / 10) + 1;
+                $("#allPage").text("(共" + allPage + "页)");
+            })
+            loadCollection();
+        };
+
+        function deleteCollection(button) {
+            let span = $(button).parent();
+            let h5 = $(span).parent();
+            let divHead = $(h5).parent();
+            let divDesc = $(divHead).next();
+            let footer = $(divDesc).next();
+            let id = $(divDesc).attr("id");
+            let url = "http://148.70.73.59:8801/remove-collection?id=" + id;
+
+            $.get(url, function (resulth) {
+                let htmlHead = "<div class=\"col-12\"><h5 class=\"col-center\"><span class=\"badge badge-info\">编号</span><del>&nbsp;(已删除)" + id + "</del><span class=\"badge-pill\"></span></h5></div>";
+                let htmlFooter = "<div class=\"col-12\"><hr></div>";
+                $(divHead).html(htmlHead);
+                $(divDesc).remove();
+                $(footer).html(htmlFooter);
+            });
+        }
+
+        function editCollection(button) {
+            let span = $(button).parent();
+            let h5 = $(span).parent();
+            let divHead = $(h5).parent();
+            let divDesc = $(divHead).next();
+            let divFooter = $(divDesc).next();
+            let cite = $(divFooter).children("cite");
+
+            let id = $(divDesc).attr("id");
+            let desc = $(divDesc).html();
+            let type = $(cite).text();
+
+            let htmlDesc = "<textarea id=\"desc\" type=\"text\" class=\"form-control\">#{desc}</textarea>";
+            let htmlFooter = "<div class=\"input-group flex-nowrap\" style=\"margin-top: 10px;\"><div class=\"input-group-prepend\"><span class=\"input-group-text\">type</span></div><input id=\"type\" type=\"text\" class=\"form-control\" value=\"#{type}\"></div><button id=\"upload-collection\" type=\"button\" class=\"btn btn-info btn-lg btn-block\" style=\"margin-top: 10px;\" onclick=\"editCollectionPost('#{id}')\">upload</button><hr />";
+            htmlDesc = htmlDesc.replace("#{desc}", desc);
+            htmlFooter = htmlFooter.replace("#{id}", id).replace("#{type}", type);
+
+            $(divDesc).html(htmlDesc);
+            $(divFooter).html(htmlFooter);
+        }
+
+        function editCollectionPost(id) {
+            let desc = $("#desc").val();
+            let type = $("#type").val();
+            let collection = { Fid: id, type: type, desc: desc };
+            let formData = new FormData();
+            formData.append("collection", JSON.stringify(collection));
+            $.post({
+                url: "http://148.70.73.59:8801/edit-collection",
+                type: 'POST',
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (json) {
+                    alert(JSON.stringify(json));
+                },
+                error: function (error) {
+                    alert(error.responseText);
+                }
+            })
+
+            let divDesc = $("#desc").parent();
+            let divFooter = $(divDesc).next();
+
+            let htmlDesc = htmlDescTemplate.replace("#{desc}", desc).replace("#{id}", id);
+            let htmlFooter = htmlFooterTemplate.replace("#{type}", type).replace("#{date}", "just-now-update");
+
+            $(divDesc).html(htmlDesc);
+            $(divFooter).html(htmlFooter);
+        }
+
+        function loadCollection() {
+            let url = "http://148.70.73.59:8801/get-collections?page=" + (page - 1) * size + "&size=" + size;
+            $.get(url, function (resulth) {
+                let html = "";
+                let jsonArray = resulth;
+                for (let i in jsonArray) {
+                    let json = jsonArray[i];
+                    let id = json.id;
+                    let type = json.type;
+                    let desc = json.desc;
+                    let date = json.date;
+                    let row = "<div class=\"row\">#{div}</div>";
+                    let htmlHead = htmlHeadTemplate.replace("#{id}", id);
+                    let htmlDesc = htmlDescTemplate.replace("#{desc}", desc).replace("#{id}", id);
+                    let htmlFooter = htmlFooterTemplate.replace("#{type}", type).replace("#{date}", date);
+                    row = row.replace("#{div}", htmlHead + htmlDesc + htmlFooter);
+                    html = html + row;
+                }
+                $("#content").html(html);
+            })
+        }
+
+        $("#previous").click(function () {
+            if (page <= 1) {
+                alert("不能这样做，页数无法小于1页");
+                return;
+            }
+            $("#page").val(--page);
+            loadCollection();
+        });
+        $("#next").click(function () {
+            if (page >= allPage) {
+                alert("不能这样做，总页数只有" + allPage + "页");
+                return;
+            }
+            var pageTemp = $("#page").val();
+            if (pageTemp == page) {
+                $("#page").val(++page);
+            } else {
+                page = pageTemp;
+            }
+            loadCollection();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,  initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+  <link href="css/common.css" rel="stylesheet">
+  <script src="js/common.js"></script>
+  <title>model-project</title>
+</head>
+
+<body>
+  <section class="container">
+    <ul class="nav justify-content-center">
+      <li class="nav-item">
+        <a class="nav-link" active href="#">model</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">about</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="clearCache()">clear-cache</a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">project</li>
+      </ol>
+    </nav>
+  </section>
+
+  <section id="main" class="container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">名称</th>
+          <th scope="col">描述</th>
+          <th scope="col">创建日期</th>
+        </tr>
+      </thead>
+      <tbody id="project-info">
+        <tr onclick="toToble(this)">
+          <td>${name}</td>
+          <td>${desc}</td>
+          <td>${date}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    let teHtml = "<tr onclick=\"toToble(this)\"><td>${name}</td><td>${desc}</td><td>${date}</td></tr>";
+
+    window.onload = function () {
+      let html = "";
+      let url = "http://148.70.73.59:8002/get/project";
+      $.get(url, function (jsonArray) {
+        for (let i in jsonArray) {
+          let json = jsonArray[i];
+          let name = json.name;
+          let desc = json.desc;
+          let date = json.date;
+          let temp = teHtml.replace("${name}", name);
+          temp = temp.replace("${desc}", desc);
+          temp = temp.replace("${date}", date);
+          html += temp;
+        }
+        $("#project-info").html(html);
+      })
+    }
+
+    function toToble(project) {
+      let td = $(project).children("td").get(0);
+      let name = $(td).text();
+      window.location = "model-table.html?pName=" + name;
+    }
+  </script>
+
+</body>
+
+</html>
